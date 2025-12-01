@@ -27,20 +27,29 @@ type Safe struct {
 	capacity int
 }
 
-func (s *Safe) move(instruction Instruction) {
-	remainder := instruction.steps % s.capacity
+func (s *Safe) move(instruction Instruction) int {
+	zeros := 0
 	switch instruction.direction {
 	case "R":
-		s.currentPosition += remainder
-		if s.currentPosition >= s.capacity {
-			s.currentPosition = s.currentPosition - s.capacity
+		for i := 0; i < instruction.steps; i++ {
+			s.currentPosition++
+			if s.currentPosition == s.capacity {
+				// we're passing zero. whether or not we term on this instruction, we're recording either that we've passed zero or we're stopping at zero
+				s.currentPosition = 0
+				zeros++
+			}
 		}
 	case "L":
-		s.currentPosition -= remainder
-		if s.currentPosition < 0 {
-			s.currentPosition = s.capacity + s.currentPosition
+		for i := 0; i < instruction.steps; i++ {
+			s.currentPosition--
+			if s.currentPosition == 0 {
+				zeros++
+			} else if s.currentPosition <= 0 {
+				s.currentPosition = s.capacity - 1
+			}
 		}
 	}
+	return zeros
 }
 
 func main() {
@@ -54,11 +63,9 @@ func main() {
 	}
 	atZero := 0
 	for _, instruction := range instructions {
-		safe.move(instruction)
-		if safe.currentPosition == 0 {
-			atZero++
-		}
-		fmt.Println(fmt.Sprintf("Moving %s %d steps, current position: %d", instruction.direction, instruction.steps, safe.currentPosition))
+		zeros := safe.move(instruction)
+		atZero += zeros
+		fmt.Println(fmt.Sprintf("passed zero %d times executing instruction %+v", zeros, instruction))
 	}
 	fmt.Println(atZero)
 }
