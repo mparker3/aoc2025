@@ -53,8 +53,6 @@ func (s *Safe) move(instruction Instruction) int {
 }
 
 func main() {
-	_ = helpers.MustParseTo(helpers.InputFile(), transform)
-
 	instructions := helpers.MustParseTo(helpers.InputFile(), transform)
 
 	safe := Safe{
