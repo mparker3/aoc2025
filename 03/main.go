@@ -3,6 +3,7 @@ package main
 import (
 	"aoc2025/helpers"
 	"fmt"
+	"math"
 	"strconv"
 )
 
@@ -26,27 +27,29 @@ func main() {
 	batteries := helpers.MustParseTo(helpers.InputFile(), transform)
 	maxJoltage := 0
 	for _, battery := range batteries {
-		maxJoltage += findMaxJoltage(battery)
+		joltage := findMaxJoltageRecursive(battery.joltages, 12)
+		maxJoltage += joltage
 	}
 	fmt.Println(maxJoltage)
 }
 
-func findMaxJoltage(battery battery) int {
-	// find max first digit. work backwards from len(battery.joltages) - 2
-	maxFirstDigit, maxFirstDigitIndex := -1, -1 // zero is a valid digit, but it might not appear here 
-	for i := len(battery.joltages) - 2; i >= 0; i-- {
-		if battery.joltages[i] >= maxFirstDigit { // >= because we want to give ourselves as many options as possible
-			maxFirstDigit = battery.joltages[i]
-			maxFirstDigitIndex = i
-		}
-	}
 
-	maxLastDigit := -1
-	// work forwards from maxFirstDigitIndex + 1
-	for i := maxFirstDigitIndex + 1; i < len(battery.joltages); i++ {
-		if battery.joltages[i] > maxLastDigit {
-			maxLastDigit = battery.joltages[i]
+func findMaxJoltageRecursive(joltages []int, digitsLeft int) int {
+	// so to expand to 12 digits. you essentially want the first instance of the highest number that is not in the last 11 digits.
+	// then repeat the process. now, you want the first instance of the highest number that's in the remainder of the array after the index of the first number, 
+	// but still not in the last 10 digits. and so on and so forth.  
+	// solve the base case
+	if digitsLeft == 0 {
+		return 0
+	}
+	
+	// find the first instance of the highest number, work backwards
+	highestNumber, highestNumberIndex := -1, -1
+	for i := 0; i <= len(joltages) - digitsLeft; i++ {
+		if joltages[i] > highestNumber {
+			highestNumber = joltages[i]
+			highestNumberIndex = i
 		}
 	}
-	return (maxFirstDigit * 10) + maxLastDigit
+	return (highestNumber * int(math.Pow10(digitsLeft - 1))) + findMaxJoltageRecursive(joltages[highestNumberIndex + 1:], digitsLeft - 1)
 }
