@@ -41,9 +41,20 @@ func (b *Board) neighbors(x int, y int) []int {
 	return neighbors
 }
 
+func (b *Board) removeMany(positions [][]int) int {
+	removed := 0
+	for _, position := range positions {
+		(*b)[position[0]][position[1]] = 0
+		removed++
+	}
+	return removed
+
+}
+
 func main() {
 	board := Board(helpers.MustParseTo(helpers.InputFile(), transform))
-	reachable := 0
+	removable := make([][]int, 0)
+
 	for i := range len(board) {
 		for j := range len(board[i]) {
 			if board[i][j] == 1 {
@@ -53,10 +64,31 @@ func main() {
 					neighborSum += neighbor
 				}
 				if neighborSum < 4 {
-					reachable++
+					removable = append(removable, []int{i, j})
 				}
 			}
 		}
 	}
-	fmt.Println(reachable)
+	removedTotal := 0
+	for len(removable) != 0 {
+		removed := board.removeMany(removable)
+		removedTotal += removed
+		removable = make([][]int, 0)
+
+		for i := range len(board) {
+			for j := range len(board[i]) {
+				if board[i][j] == 1 {
+					neighbors := board.neighbors(i, j)
+					neighborSum := 0
+					for _, neighbor := range neighbors {
+						neighborSum += neighbor
+					}
+					if neighborSum < 4 {
+						removable = append(removable, []int{i, j})
+					}
+				}
+			}
+		}
+	}
+	fmt.Println(removedTotal)
 }
