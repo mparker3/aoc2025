@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -24,29 +25,63 @@ func opAdd(ints []int) int {
 	return sum
 }
 
+func toStrArr (inputs string) []string {
+	out := []string{}
+	for i := range inputs {
+		out = append(out, string(inputs[i]))
+	}
+	slices.Reverse(out) // mixing data logic and app logic >>>>>>>
+	return out
+}
 
 func main() {
-	inputs := helpers.MustParseTo(helpers.InputFile(), strings.Fields)
-	fmt.Println(inputs[0])
-	numInputs := inputs[:len(inputs)-1]
-	ops := inputs[len(inputs)-1]
-	numSeries := [][]int{}
-	for i := range numInputs[0] {
-		thisSeries := []int{}
-		for j := range numInputs {
-			toInt, _ := strconv.Atoi(numInputs[j][i])
-			thisSeries = append(thisSeries, toInt)
+	inputs := helpers.MustParseTo(helpers.InputFile(), toStrArr)
+	problems := [][][]string{}
+	currentPSet := [][]string{}
+	for j := range inputs[0] {
+		thisCol := []string{}
+		for i := range len(inputs)-1 { // don't handle the last line
+			thisCol = append(thisCol, inputs[i][j])
 		}
-		numSeries = append(numSeries, thisSeries)
+		if isBlankLine(thisCol) {
+			problems = append(problems, currentPSet)
+			currentPSet = [][]string{}
+			continue
+		}
+		currentPSet = append(currentPSet, thisCol)
 	}
-	result := 0
-	for i, series := range numSeries {
-		op := ops[i]
-		if op == "*" {
-			result += opMultiply(series)
-		} else {
-			result += opAdd(series)
+
+	// final one
+	problems = append(problems, currentPSet)
+
+	intProbs := [][]int{}
+	for _, problem := range problems {
+		intProb := []int{}
+		for _, inte := range problem {
+			joined := strings.Join(inte, "")
+			joined = strings.ReplaceAll(joined, " ", "")
+			ints, _ := strconv.Atoi(joined)
+			intProb = append(intProb, ints)
+		}
+		intProbs = append(intProbs, intProb)
+	}
+	answer := 0
+	for i, op := range strings.Fields(strings.Join(inputs[len(inputs)-1], " ")) {
+		switch op {
+		case "*":
+			answer += opMultiply(intProbs[i])
+		case "+":
+			answer += opAdd(intProbs[i])
 		}
 	}
-	fmt.Println(result)
+	fmt.Println(answer)
+}
+
+func isBlankLine(line []string) bool {
+	for _, char := range line {
+		if char != " " {
+			return false
+		}
+	}
+	return true
 }
