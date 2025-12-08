@@ -75,15 +75,19 @@ func main() {
 	}
 
 	// already sorted
-	var controlNum int = 1000 // TODO: change me to 1000 when running against prod 
-	for _, distance := range boxDistances[:controlNum] {
+	for _, distance := range boxDistances {
 		circuit1 := circuits[distance.self.id]
 		circuit2 := circuits[distance.other.id]
 		newCircuit := circuit1.merge(circuit2)
 		fmt.Println("merged circuits", circuit1.id, circuit2.id, "->", newCircuit.id)
 		fmt.Println("new circuit size", len(newCircuit.boxes))
+		// this w
 		for _, box := range newCircuit.boxes {
 			circuits[box.id] = newCircuit
+		}
+		if len(newCircuit.boxes) == len(boxes) {
+			fmt.Println(distance.self.x * distance.other.x)
+			return 
 		}
 	}
 
